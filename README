@@ -1,0 +1,8 @@
+#----------[ MENTALMATH ]----------#
+
+Juste un petit programme pour le fun, et parce que faire du calcul mental c'est tout bénef. 
+
+Le code est pas bien compliqué, le joueur peut choisir s'il veut faire des additions ou des multiplications, le niveau de difficulté ainsi que le nombre de calculs qu'il souhaite enchaîner.
+
+Pour chaque calcul, il a droit à 5 essais.
+Son score final est donné à la fin.
