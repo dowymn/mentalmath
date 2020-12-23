@@ -1,21 +1,34 @@
 import java.util.Scanner;
 
+/**
+ * MentalMath - Jeu de calcul mental
+ * @author Dowymn
+ */
 public class Main {
 
     //---[ MÉTHODE PRINCIPALE ]---//
+    
     public static void main(String[] args) {
-
-        String typeExo = typeExercice();
-        String typeDiff = typeDifficulte();
-
-        calculs( typeExo, nbMin(typeDiff), nbMax(typeDiff), nbCalculs() );
-
-
+        lanceur();
     }
 
 
     //---[ MÉTHODES ]---//
 
+    /**
+     * Permet de lancer le jeu.
+     */
+    public static void lanceur () {
+        String typeExo = typeExercice();
+        String typeDiff = typeDifficulte();
+        calculs( typeExo, nbMin(typeDiff), nbMax(typeDiff), nbCalculs() );
+    }
+
+    /**
+     * Permet au joueur de choisir le type d'exercice entre l'addition, la multiplication ou un mélange des deux.
+     * Tant que le type entré par le joueur est différent des types proposés, le choix lui est redemandé.
+     * @return typeExo le type d'exercice choisi
+     */
     public static String typeExercice () {
 
         Scanner clavier = new Scanner(System.in);
@@ -25,16 +38,22 @@ public class Main {
         System.out.println("Vous avez le choix entre deux types d'opérations :");
         System.out.println("- addition");
         System.out.println("- multiplication");
+        System.out.println("- mix");
 
         do {
             System.out.println("Choisissez le type d'exercice : ");
             typeExo = clavier.nextLine();
-        } while ( typeExo.equals("addition")==false && typeExo.equals("multiplication")==false );
+        } while ( !typeExo.equals("addition") && !typeExo.equals("multiplication") && !typeExo.equals("mix") );
 
         System.out.println("Vous avez choisi de faire des calculs de type " + typeExo + ".");
         return typeExo;
     }
 
+    /**
+     * Permet au joueur de choisir la difficulté de l'exercice entre facile, moyen, difficile ou croissante.
+     * Tant que la difficulté entrée est != des difficultés proposées, le choix est redemandé au joueur.
+     * @return typeDiff la difficulté choisie par le joueur
+     */
     public static String typeDifficulte () {
 
         String typeDiff;
@@ -44,16 +63,22 @@ public class Main {
         System.out.println("- facile");
         System.out.println("- moyen");
         System.out.println("- difficile");
+        System.out.println("- croissante");
 
         do {
             System.out.println("Choisissez la difficulté : ");
             typeDiff = clavier.nextLine();
-        } while ( typeDiff.equals("facile")==false && typeDiff.equals("moyen")==false && typeDiff.equals("difficile")==false );
+        } while ( !typeDiff.equals("facile") && !typeDiff.equals("moyen") && !typeDiff.equals("difficile") && !typeDiff.equals("croissant") );
 
         System.out.println("Vous avez choisi le mode " + typeDiff + ".");
         return typeDiff;
     }
 
+    /**
+     * Permet au joueur de choisir le nombre de calculs qu'il veut faire.
+     * Tant qu'il entre un nombre <= 0, il lui est redemandé d'entrer un nombre.
+     * @return n le nombre de calculs
+     */
     public static int nbCalculs() {
 
         Scanner clavier = new Scanner(System.in);
@@ -68,6 +93,11 @@ public class Main {
         return n;
     }
 
+    /**
+     * Définit la valeur minimale du premier nombre des calculs.
+     * @param typeDiff le type de difficulté choisi par le joueur
+     * @return min la valeur minimale en fonction de la difficulté choisie.
+     */
     public static int nbMin( String typeDiff ) {
         int min = 0;
         if ( typeDiff.equals ("moyen") ) { min = 10; }
@@ -76,6 +106,11 @@ public class Main {
         return min;
     }
 
+    /**
+     * Définit la valeur maximale du premier nombre des calculs.
+     * @param typeDiff le type de difficulté choisi par le joueur
+     * @return min la valeur maximale en fonction de la difficulté choisie.
+     */
     public static int nbMax( String typeDiff ) {
         int max = 10;
         if ( typeDiff.equals ("moyen") ) { max = 99; }
@@ -84,41 +119,76 @@ public class Main {
         return max;
     }
 
+    // déroulement des calsuls
+
+    /**
+     * Déroulement du nombre de calculs demandés.
+     * Si le type choisi est mix, le type de calcul est tiré aléatoirement à chaque tour de boucle.
+     * Pour chaque calcul, le joueur a droit à 3 essais.
+     * Une fois tous les calculs finis, le nombre de bonnes réponses est affiché.
+     * @param typeExo le type d'exercice choisi par le joueur
+     * @param nbMin la valeur minimale des premiers nombres
+     * @param nbMax la valeur maximale des premiers nombres
+     * @param nbCalculs le nombre de calculs à effectuer
+     */
     public static void calculs ( String typeExo, int nbMin, int nbMax, int nbCalculs ) {
 
-        int nbVrai = 0, nbVraiPlus;
-        int val1, val2, answer ;
-        int rep = 0;
-        char q = '+';
+        int nbVrai = 0; // donne le nombre de bonnes réponses pour l'affichage des résultats
+        int val1, val2, answer;
+        int rep = 0; // prendra la valeur des réponses attendues aux calculs
+        char q = '+'; // prend la valeur du type de calcul
+        boolean estMix = false; // permet la spécificité du mode mix
         Scanner clavier = new Scanner(System.in);
 
+        if ( typeExo.equals("mix") ) { estMix = true; } // on regarde si le mode mix a été choisi
+
+        // déroulement des calculs
         for ( int i = 0 ; i < nbCalculs ; i++ ) {
 
-            int j = 0;
-            val1 = (int) ( Math.random() * (nbMax-nbMin) ) + nbMin;
-            val2 = (int) ( Math.random() * 10);
+            int j = 1;  // compteur du nombre d'essais pour chaque calcul
+            val1 = (int) ( Math.random() * (nbMax-nbMin) ) + nbMin;     // val1 et val2 sont définies aléatoirement
+            val2 = (int) ( Math.random() * 10 );
 
-            if ( typeExo.equals("addition") ) { rep = val1 + val2; }
-            else if ( typeExo.equals("multiplication") ) { rep = val1 * val2; q = 'x'; }
+            if (estMix) {
+                if ( (int) ( Math.random() * 2 ) == 0 ) {   // si le mode est mix, à chaque tour il y a un choix aléatoire
+                    typeExo = "addition";                   // entre addition et multiplication
+                } else {
+                    typeExo = "multiplication";
+                }
+            }
 
+            // définition de la réponse en fonction du type d'exo, de val1 et de val2
+            if ( typeExo.equals("addition") ) {
+                rep = val1 + val2;
+                q = '+';
+                System.out.println(rep);
+            } else if ( typeExo.equals("multiplication") ) {
+                rep = val1 * val2;
+                q = 'x';
+            }
+
+            // le joueur entre sa réponse et a droit à 3 essais pour la trouver
             do {
                 System.out.println("Combien font " + val1 + q + val2 + " ?");
                 answer = Integer.parseInt(clavier.nextLine());
-                if ( answer != rep ) { j++; }
-            } while ( answer != rep && j < 5 );
+                if ( answer != rep ) {
+                    j++;
+                    System.out.println("Mauvaise réponse.");
+                }
+            } while ( answer != rep && j <= 3 );
 
-            if ( j == 0 ) {
+            if ( j == 1 ) {     // calcul du nomnbre de bonnes réponses
                 nbVrai ++;
                 System.out.println("Bravo, vous avez trouvé la bonne réponse du premier coup !");
-            }
-            else if ( j < 5 ) {
+            } else if ( j <= 3 ) {
                 nbVrai++;
-                System.out.println("Vous avez trouvé la bonne réponse en " + (j+1) + " essais. Bravo !");
+                System.out.println("Vous avez trouvé la bonne réponse en " + (j) + " essais. Bravo !");
+            } else {
+                System.out.println("Vous n'avez pas trouvé la réponse malgré les 5 essais. C'est pas grave, ça arrive !");
             }
-            else { System.out.println("Vous n'avez pas trouvé la réponse malgré les 5 essais. C'est pas grave, ça arrive !"); }
-
         }
 
+        // c'est juste une histoire de pluriel ou de singulier, en soi ça sert à rien
         if ( nbVrai == 1 ) { System.out.println("Votre score est de " + nbVrai + " bonne réponse sur " + nbCalculs + " calculs."); }
         else { System.out.println("Votre score est de " + nbVrai + " bonnes réponses sur " + nbCalculs + " calculs."); }
     }
