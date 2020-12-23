@@ -21,7 +21,13 @@ public class Main {
     public static void lanceur () {
         String typeExo = typeExercice();
         String typeDiff = typeDifficulte();
-        calculs( typeExo, nbMin(typeDiff), nbMax(typeDiff), nbCalculs() );
+
+        int nbCal = 10; // si la difficulté choisie est croissante, on fixe le nombre de calculs à 10
+        if ( !typeDiff.equals("croissant") ) {
+            nbCal = nbCalculs();
+        }
+
+        calculs( typeExo, typeDiff, nbMin(typeDiff), nbMax(typeDiff), nbCal );
     }
 
     /**
@@ -63,7 +69,7 @@ public class Main {
         System.out.println("- facile");
         System.out.println("- moyen");
         System.out.println("- difficile");
-        System.out.println("- croissante");
+        System.out.println("- croissant");
 
         do {
             System.out.println("Choisissez la difficulté : ");
@@ -126,12 +132,13 @@ public class Main {
      * Si le type choisi est mix, le type de calcul est tiré aléatoirement à chaque tour de boucle.
      * Pour chaque calcul, le joueur a droit à 3 essais.
      * Une fois tous les calculs finis, le nombre de bonnes réponses est affiché.
-     * @param typeExo le type d'exercice choisi par le joueur
-     * @param nbMin la valeur minimale des premiers nombres
-     * @param nbMax la valeur maximale des premiers nombres
+     * @param typeExo   le type d'exercice choisi par le joueur
+     * @param typeDiff  le type de difficulté choisie par le joueur
+     * @param nbMin     la valeur minimale des premiers nombres
+     * @param nbMax     la valeur maximale des premiers nombres
      * @param nbCalculs le nombre de calculs à effectuer
      */
-    public static void calculs ( String typeExo, int nbMin, int nbMax, int nbCalculs ) {
+    public static void calculs ( String typeExo, String typeDiff, int nbMin, int nbMax, int nbCalculs ) {
 
         int nbVrai = 0; // donne le nombre de bonnes réponses pour l'affichage des résultats
         int val1, val2, answer;
@@ -143,11 +150,7 @@ public class Main {
         if ( typeExo.equals("mix") ) { estMix = true; } // on regarde si le mode mix a été choisi
 
         // déroulement des calculs
-        for ( int i = 0 ; i < nbCalculs ; i++ ) {
-
-            int j = 1;  // compteur du nombre d'essais pour chaque calcul
-            val1 = (int) ( Math.random() * (nbMax-nbMin) ) + nbMin;     // val1 et val2 sont définies aléatoirement
-            val2 = (int) ( Math.random() * 10 );
+        for ( int i = 1 ; i <= nbCalculs ; i++ ) {
 
             if (estMix) {
                 if ( (int) ( Math.random() * 2 ) == 0 ) {   // si le mode est mix, à chaque tour il y a un choix aléatoire
@@ -157,11 +160,25 @@ public class Main {
                 }
             }
 
+            int nbEssai = 1;  // compteur du nombre d'essais pour chaque calcul
+            val1 = (int) ( Math.random() * (nbMax-nbMin) ) + nbMin;     // val1 et val2 sont définies aléatoirement
+            val2 = (int) ( Math.random() * 10 );
+
+            if ( typeDiff.equals("croissant") ) {               // si le mode croissant est choisi, la difficulté augmente à chaque tour
+                if ( typeExo.equals("multiplication") ) {       // de manière différente si le mode effectif est addition ou multiplication
+                    val1 = (val1 + i) * i;                      // en cas de mode mix, ça s'adapte à chaque fois
+                    val2 = val2 + i;
+                }
+                else if ( typeExo.equals("addition") ) {
+                    val1 = (val1 + i) * i;
+                    val2 = (val2 + i) * i;
+                }
+            }
+
             // définition de la réponse en fonction du type d'exo, de val1 et de val2
             if ( typeExo.equals("addition") ) {
                 rep = val1 + val2;
                 q = '+';
-                System.out.println(rep);
             } else if ( typeExo.equals("multiplication") ) {
                 rep = val1 * val2;
                 q = 'x';
@@ -172,17 +189,17 @@ public class Main {
                 System.out.println("Combien font " + val1 + q + val2 + " ?");
                 answer = Integer.parseInt(clavier.nextLine());
                 if ( answer != rep ) {
-                    j++;
+                    nbEssai++;
                     System.out.println("Mauvaise réponse.");
                 }
-            } while ( answer != rep && j <= 3 );
+            } while ( answer != rep && nbEssai <= 3 );
 
-            if ( j == 1 ) {     // calcul du nomnbre de bonnes réponses
+            if ( nbEssai == 1 ) {     // calcul du nomnbre de bonnes réponses
                 nbVrai ++;
                 System.out.println("Bravo, vous avez trouvé la bonne réponse du premier coup !");
-            } else if ( j <= 3 ) {
+            } else if ( nbEssai <= 3 ) {
                 nbVrai++;
-                System.out.println("Vous avez trouvé la bonne réponse en " + (j) + " essais. Bravo !");
+                System.out.println("Vous avez trouvé la bonne réponse en " + (nbEssai) + " essais. Bravo !");
             } else {
                 System.out.println("Vous n'avez pas trouvé la réponse malgré les 5 essais. C'est pas grave, ça arrive !");
             }
