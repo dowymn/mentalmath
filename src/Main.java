@@ -7,7 +7,7 @@ import java.util.Scanner;
 public class Main {
 
     //---[ MÉTHODE PRINCIPALE ]---//
-    
+
     public static void main(String[] args) {
         lanceur();
     }
@@ -19,15 +19,23 @@ public class Main {
      * Permet de lancer le jeu.
      */
     public static void lanceur () {
+
+        System.out.println();
+
         String typeExo = typeExercice();
+        System.out.println();
+
         String typeDiff = typeDifficulte();
+        System.out.println();
 
         int nbCal = 10; // si la difficulté choisie est croissante, on fixe le nombre de calculs à 10
         if ( !typeDiff.equals("croissant") ) {
             nbCal = nbCalculs();
         }
+        System.out.println();
 
         calculs( typeExo, typeDiff, nbMin(typeDiff), nbMax(typeDiff), nbCal );
+        System.out.println();
     }
 
     /**
@@ -92,8 +100,15 @@ public class Main {
 
         do {
             System.out.println("Combien de calculs voulez-vous faire ?");
-            n = Integer.parseInt( clavier.nextLine() );
-        } while ( n < 0 );
+
+            // permet d'éviter la NumberFormatException en cas de faute de frappe
+            try {
+                n = Integer.parseInt(clavier.nextLine());
+            }
+            catch (NumberFormatException e) {
+                n = 0;
+            }
+        } while ( n <= 0 );
 
         System.out.println("Vous avez choisi de faire " + n + " calculs.");
         return n;
@@ -125,7 +140,6 @@ public class Main {
         return max;
     }
 
-    // déroulement des calsuls
 
     /**
      * Déroulement du nombre de calculs demandés.
@@ -140,12 +154,17 @@ public class Main {
      */
     public static void calculs ( String typeExo, String typeDiff, int nbMin, int nbMax, int nbCalculs ) {
 
+        Scanner clavier = new Scanner(System.in); // scanner du clavier
+
         int nbVrai = 0; // donne le nombre de bonnes réponses pour l'affichage des résultats
         int val1, val2, answer;
         int rep = 0; // prendra la valeur des réponses attendues aux calculs
         char q = '+'; // prend la valeur du type de calcul
         boolean estMix = false; // permet la spécificité du mode mix
-        Scanner clavier = new Scanner(System.in);
+        double moyTps = 0; // pemet de calculer le temps moyen mis par le joueur;
+        double bestTime = 100;
+
+        int bonusTemps = 0; // score de temps
 
         if ( typeExo.equals("mix") ) { estMix = true; } // on regarde si le mode mix a été choisi
 
@@ -161,8 +180,15 @@ public class Main {
             }
 
             int nbEssai = 1;  // compteur du nombre d'essais pour chaque calcul
-            val1 = (int) ( Math.random() * (nbMax-nbMin) ) + nbMin;     // val1 et val2 sont définies aléatoirement
-            val2 = (int) ( Math.random() * 10 );
+            val1 = (int) ( Math.random() * (nbMax-nbMin) ) + nbMin;     // val1 est défini aléatoirement
+
+            if ( typeExo.equals("addition") && typeDiff.equals("moyen") ) {     // on définit aléatoirement val2 en fonction de la difficulté pour le mode addition
+                val2 = (int) ( Math.random() * (99 - 9) + 9 );
+            } else if ( typeExo.equals("addition") && typeDiff.equals("difficile") ) {
+                val2 = (int) ( Math.random() * (999 - 99) + 99 );
+            } else {
+                val2 = (int) ( Math.random() * 10 );
+            }
 
             if ( typeDiff.equals("croissant") ) {               // si le mode croissant est choisi, la difficulté augmente à chaque tour
                 if ( typeExo.equals("multiplication") ) {       // de manière différente si le mode effectif est addition ou multiplication
@@ -184,30 +210,75 @@ public class Main {
                 q = 'x';
             }
 
+            // calcul du temps mis par le joueur : heure de début du calcul
+            double tps1 = System.currentTimeMillis();
+
             // le joueur entre sa réponse et a droit à 3 essais pour la trouver
             do {
                 System.out.println("Combien font " + val1 + q + val2 + " ?");
-                answer = Integer.parseInt(clavier.nextLine());
+
+                // permet d'éviter la NumberFormatException en cas de faute de frappe
+                try {
+                    answer = Integer.parseInt(clavier.nextLine());
+                }
+                catch (NumberFormatException e) {
+                    answer = 0;
+                }
+
                 if ( answer != rep ) {
                     nbEssai++;
                     System.out.println("Mauvaise réponse.");
                 }
             } while ( answer != rep && nbEssai <= 3 );
 
+            // calcul du temps mis par le joueur : heure de fin du calcul
+            double tps2 = System.currentTimeMillis();
+            double temps = ( tps2 - tps1 ) / 1000;
+            moyTps += temps;
+            if ( temps < bestTime ) { bestTime = temps; }
+
             if ( nbEssai == 1 ) {     // calcul du nomnbre de bonnes réponses
                 nbVrai ++;
-                System.out.println("Bravo, vous avez trouvé la bonne réponse du premier coup !");
+                if ( temps > 15 ) {
+                    bonusTemps --;
+                } else if ( temps < 5 ) {
+                    bonusTemps ++;
+                }
             } else if ( nbEssai <= 3 ) {
                 nbVrai++;
-                System.out.println("Vous avez trouvé la bonne réponse en " + (nbEssai) + " essais. Bravo !");
-            } else {
-                System.out.println("Vous n'avez pas trouvé la réponse malgré les 5 essais. C'est pas grave, ça arrive !");
+                if ( temps > 15 ) {
+                    bonusTemps --;
+                }
             }
+            System.out.println();
         }
 
-        // c'est juste une histoire de pluriel ou de singulier, en soi ça sert à rien
-        if ( nbVrai == 1 ) { System.out.println("Votre score est de " + nbVrai + " bonne réponse sur " + nbCalculs + " calculs."); }
-        else { System.out.println("Votre score est de " + nbVrai + " bonnes réponses sur " + nbCalculs + " calculs."); }
+        // calcul du temps moyen par calcul
+        moyTps = moyTps / nbVrai;
+
+        // affichage du score
+        double score = ( nbVrai / nbCalculs + (15 - moyTps) ) / bestTime + bonusTemps;
+        System.out.println("Votre score est de " + score + " points.");
+
+        System.out.println("Voulez-vous les détails de votre score ?");
+        String choixScore;
+        do {
+            choixScore = clavier.nextLine();
+        } while ( !choixScore.equals("oui") && !choixScore.equals("non") );
+
+        if ( choixScore.equals("oui") ) { // affichage étendu des performances du joueur
+            System.out.println();
+            System.out.println("| Vous avez joué en mode " + typeExo + " en difficulté " + typeDiff + "." );
+            System.out.println("| Nombre de calculs réalisés : " + nbCalculs );
+            System.out.println("| Nombre de résultats corrects : " + nbVrai );
+            System.out.println("| Nombre de résultats non trouvés : " + (nbCalculs - nbVrai) );
+            System.out.println("| Temps moyen par calcul : " + moyTps + "s" );
+            System.out.println("| Meilleur temps : " + bestTime + "s " );
+            System.out.println("| Bonus temps : " + bonusTemps );
+            System.out.println("| ");
+            System.out.println("| SCORE FINAL : " + score );
+            System.out.println();
+        }
     }
 
 }
